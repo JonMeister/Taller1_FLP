@@ -1,0 +1,169 @@
+;; Taller 1: Definición recursiva de programas e inducción
+;; Integrantes:
+;; Jonathan Aristizabal - 2322626
+
+#lang eopl
+
+;; Punto 1)
+;; invert :
+;; Propósito:
+;; L → L' : Procedimiento que intercambia los elementos de cada par 
+;; dentro de una lista de pares.
+;;
+;; <lista-pares> := ()
+;;               := (<par> <lista-pares>)
+;; <par> := (<valor> <valor>)
+
+
+(define (invert L)
+  (if (null? L)
+      '()
+      (cons (list (cadar L) (caar L)) (invert (cdr L))))); Intercambia la posición car por la cadr de la lista
+
+;; Pruebas
+(display (invert '()))
+(newline)
+(display (invert '((a 1) (a 2) (1 b) (2 b))))
+(newline)
+(display (invert '((5 9) (10 91) (82 7) (a e) ("hola" "Mundo"))))
+(newline)
+(display (invert '(("es" "racket") ("genial" "muy") (17 29) (81 o))))
+(newline)
+
+;; Punto 4)
+;; filter-in :
+;; Propósito:
+;; P × L → L' : Procedimiento que filtra los elementos de la lista L
+;; que cumplen con el predicado P.
+;;
+;; <lista> := ()
+;;         := (<elemento> <lista>)
+;; <predicado> := función booleana que evalúa cada elemento
+
+(define (filter-in P L)
+  (cond
+    [(null? L) '()]  ; Si la lista está vacía, retorna una lista vacía
+    [(and (not (pair? (car L))) (P (car L)))  ; Si el primer elemento satisface P y no es una lista anidada
+     (cons (car L) (filter-in P (cdr L)))]
+    [else (filter-in P (cdr L))]))  ; Si no cumple la condición, sigue con el resto de la lista
+
+;; Pruebas
+(display (filter-in number? '(a 2 (1 3) b 7)))
+(newline)
+(display (filter-in symbol? '(a (b c) 17 foo)))
+(newline)
+(display (filter-in string? '(a b u "univalle" "racket" "flp" 28 90 (1 2 3))))
+(newline)
+
+;; Punto 7)
+;; cartesian-product :
+;; Propósito:
+;; L1 × L2 → L' : Procedimiento que genera el producto cartesiano
+;; entre dos listas de símbolos sin repeticiones.
+;;
+;; <lista> := ()
+;;         := (<símbolo> <lista>)
+;; <producto cartesiano> := lista de pares (tuplas)
+
+(define (cartesian-product L1 L2)
+  (if (null? L1)
+      '()
+      (append (map (lambda (y) (list (car L1) y)) L2)
+              (cartesian-product (cdr L1) L2))))
+
+;; Pruebas
+(display (cartesian-product '(a b c) '(x y)))
+(newline)
+(display (cartesian-product '(p q r) '(5 6 7)))
+(newline)
+
+;; Punto 10)
+;; up :
+;; Propósito:
+;; L → L' : Procedimiento que elimina un nivel de paréntesis de cada
+;; elemento en el nivel más alto de la lista.
+;;
+;; <lista> := ()
+;;         := (<elemento> <lista>)
+;; <elemento> := átomo | lista
+
+(define (up L)
+  (if (null? L)
+      '()
+      (append (if (list? (car L)) (car L) (list (car L)))
+              (up (cdr L)))))
+
+
+;; Pruebas
+(display (up '((1 2) (3 4))))
+(newline)
+(display (up '((x (y)) z)))
+(newline)
+(display (up '((a (b c)) ((d e) f) g)))
+(newline)
+
+;; Punto 13)
+;; operate:
+;; Propósito:
+;; Irators × Irands → Número : Procedimiento que aplica sucesivamente 
+;; cada función binaria de irators a los valores en irands.
+;;
+;; <lista-operadores> := ()
+;;                    := (<operador-binario> <lista-operadores>)
+;; <lista-operandos> := (<número> <lista-operandos>)
+
+(define (operate lrators lrands)
+  (if (null? lrators)
+      (car lrands) ; Si no hay más operadores, devuelve el último operando
+      (operate (cdr lrators) ; Usa el primer operando de lrators para multiplicar el priimer y segundo término de lrands
+               (cons ((car lrators) (car lrands) (cadr lrands)) ; Devuelve una lista con el resultado de la operación y la lista sin los dos primeros elementos
+                     (cddr lrands)))))
+
+; Pruebas
+(display (operate (list + * + - *) '(1 2 8 4 11 6)))
+(newline)
+(display (operate (list *) '(4 5))) 
+(newline)
+(display (operate (list + -) '(10 5 2)))
+(newline)
+(display (operate (list -) '(10 5 2)))
+(newline)
+
+;; Punto 16)
+;; Operar-binarias:
+;; Propósito:
+;; <OperacionB> → <int>
+;; Evalúa una operación binaria representada en la estructura definida por la gramática.
+;;
+;; <OperacionB> := <int>
+;;              := (<OperacionB> 'suma <OperacionB>)
+;;              := (<OperacionB> 'resta <OperacionB>)
+;;              := (<OperacionB> 'multiplica <OperacionB>)
+(define (Operar-binarias operacionB)
+  (cond
+    [(number? operacionB) operacionB] ; Si es un número, se devuelve tal cual
+    [(and (list? operacionB) (= (length operacionB) 3)) ; Verifica que sea una lista de longitud 3
+     (let ([left (car operacionB)]
+           [op (cadr operacionB)]
+           [right (caddr operacionB)])
+       (cond
+         [(eq? op 'suma) (+ (Operar-binarias left) (Operar-binarias right))]
+         [(eq? op 'resta) (- (Operar-binarias left) (Operar-binarias right))]
+         [(eq? op 'multiplica) (* (Operar-binarias left) (Operar-binarias right))]
+         [else ("Operador inválido")]))]
+    [else ("Expresión inválida")])) ; Manejo de error para expresiones no válidas
+
+;; Pruebas
+(display (Operar-binarias 4)) ; 4
+(newline)
+(display (Operar-binarias '(2 suma 9))) ; 2 + 9 = 11
+(newline)
+(display (Operar-binarias '(2 resta 9))) ; 2 - 9 = 7
+(newline)
+(display (Operar-binarias '(2 multiplica 9))) ; 2 x 9 = 18
+(newline)
+(display (Operar-binarias '((2 multiplica 3) suma (5 resta 1)))) ; 2 x 3 + 5 - 1 = 10
+(newline)
+(display (Operar-binarias '((2 multiplica (4 suma 1)) multiplica ((2 multiplica 4) resta 1)))) ; 2 x (4+1) x (2 x 4 -1) = 70
+(newline)
+

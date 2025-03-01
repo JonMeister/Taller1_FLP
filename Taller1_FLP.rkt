@@ -1,6 +1,9 @@
 ;; Taller 1: Definición recursiva de programas e inducción
-;; Integrantes:
+;; Integrantes grupo #15:
 ;; Jonathan Aristizabal - 2322626
+;; Andrey Quiceno -
+;; Johan Ceballos
+;; Fecha: 01-03-2025
 
 #lang eopl
 
@@ -21,6 +24,8 @@
       (cons (list (cadar L) (caar L)) (invert (cdr L))))); Intercambia la posición car por la cadr de la lista
 
 ;; Pruebas
+(display "Pruebas punto 1, función: invert")
+(newline)
 (display (invert '()))
 (newline)
 (display (invert '((a 1) (a 2) (1 b) (2 b))))
@@ -29,6 +34,18 @@
 (newline)
 (display (invert '(("es" "racket") ("genial" "muy") (17 29) (81 o))))
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 2)
+;; down : List -> List
+;; Usage: (down L) = returns a list where each element
+;;                    of L is enclosed in an additional pair of parentheses.
+
+(define (down L)
+  (if (null? L)
+      '()
+      (cons (list (car L)) (down (cdr L)))))
 
 ;; Punto 4)
 ;; filter-in :
@@ -48,12 +65,32 @@
     [else (filter-in P (cdr L))]))  ; Si no cumple la condición, sigue con el resto de la lista
 
 ;; Pruebas
+(display "Pruebas punto 4, función: filter-in")
+(newline)
 (display (filter-in number? '(a 2 (1 3) b 7)))
 (newline)
 (display (filter-in symbol? '(a (b c) 17 foo)))
 (newline)
 (display (filter-in string? '(a b u "univalle" "racket" "flp" 28 90 (1 2 3))))
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 5)
+;; list-index : (X -> Boolean) List -> Number | #f
+;; Usage: (list-index P L) = returns the index of the first element in L 
+;;                           that satisfies predicate P. If no element 
+;;                           satisfies P, returns #f.
+(define (list-index P L)
+  (cond
+    ((null? L) #f)
+    ((P (car L)) 0)
+    ((list? (car L)) 
+     (list-index P (cdr L))) 
+    (else 
+     (let ((rest (list-index P (cdr L))))
+       (if (number? rest) (+ 1 rest) #f)))))
 
 ;; Punto 7)
 ;; cartesian-product :
@@ -68,14 +105,31 @@
 (define (cartesian-product L1 L2)
   (if (null? L1)
       '()
-      (append (map (lambda (y) (list (car L1) y)) L2)
-              (cartesian-product (cdr L1) L2))))
+      (append (map (lambda (y) (list (car L1) y)) L2) ; Crea pares (car L1, y) para cada y en L2
+              (cartesian-product (cdr L1) L2)))) ; Llama recursivamente con el resto de L1 menos la cabeza y L2
 
 ;; Pruebas
+(display "Pruebas punto 7, función: cartesian-product")
+(newline)
 (display (cartesian-product '(a b c) '(x y)))
 (newline)
 (display (cartesian-product '(p q r) '(5 6 7)))
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 8)
+;; mapping : (Number -> Number) List List -> List
+;; Usage: (mapping F L1 L2)
+
+(define (mapping F L1 L2)
+  (define (filtrar L1 L2)
+    (cond
+      ((null? L1) '())  
+      ((= (F (car L1)) (car L2)) 
+       (cons (list (car L1) (car L2)) (filtrar (cdr L1) (cdr L2))))
+      (else (filtrar (cdr L1) (cdr L2))))) 
+  (filtrar L1 L2))
 
 ;; Punto 10)
 ;; up :
@@ -90,17 +144,32 @@
 (define (up L)
   (if (null? L)
       '()
-      (append (if (list? (car L)) (car L) (list (car L)))
-              (up (cdr L)))))
+      (append (if (list? (car L)) (car L) (list (car L))) ; Si el primer elemento es una lista, lo deja así. Si no, lo convierte en una lista
+              (up (cdr L))))) ; Llamada recursiva con el resto de la lista
 
 
 ;; Pruebas
+(display "Pruebas punto 10, función: up")
+(newline)
 (display (up '((1 2) (3 4))))
 (newline)
 (display (up '((x (y)) z)))
 (newline)
 (display (up '((a (b c)) ((d e) f) g)))
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 11)
+;; zip : (A A -> B) List List -> List
+;; usage: (zip f l1 l2) = a list where each element is f applied
+;;                         to corresponding elements of l1 and l2
+
+(define (zip F L1 L2)
+  (if (null? L1)
+      '()
+      (cons (F (car L1) (car L2))
+            (zip F (cdr L1) (cdr L2)))))
 
 ;; Punto 13)
 ;; operate:
@@ -120,6 +189,8 @@
                      (cddr lrands)))))
 
 ; Pruebas
+(display "Pruebas punto 13, función: operate")
+(newline)
 (display (operate (list + * + - *) '(1 2 8 4 11 6)))
 (newline)
 (display (operate (list *) '(4 5))) 
@@ -128,6 +199,25 @@
 (newline)
 (display (operate (list -) '(10 5 2)))
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 14)
+;; path: Int BST -> List
+;; usage: (path n bst) = a list of directions ('left or 'right) describing the path
+;;                       to reach the value n in the binary search tree bst.
+
+(define (path n bst)
+  (define (helper current-bst)
+    (cond
+      [(null? current-bst) '()]  
+      [(= n (car current-bst)) '()] 
+      [(< n (car current-bst))
+       (cons 'left (helper (cadr current-bst)))]
+      [else  
+       (cons 'right (helper (caddr current-bst)))]))
+  
+  (helper bst))
 
 ;; Punto 16)
 ;; Operar-binarias:
@@ -143,17 +233,19 @@
   (cond
     [(number? operacionB) operacionB] ; Si es un número, se devuelve tal cual
     [(and (list? operacionB) (= (length operacionB) 3)) ; Verifica que sea una lista de longitud 3
-     (let ([left (car operacionB)]
+     (let ([left (car operacionB)] ; Asigna los valores de la lista a las variables temporales left, op y right
            [op (cadr operacionB)]
            [right (caddr operacionB)])
-       (cond
-         [(eq? op 'suma) (+ (Operar-binarias left) (Operar-binarias right))]
+       (cond                            
+         [(eq? op 'suma) (+ (Operar-binarias left) (Operar-binarias right))]  ; Opera con las 3 operaciones establecidas de manera recursiva
          [(eq? op 'resta) (- (Operar-binarias left) (Operar-binarias right))]
          [(eq? op 'multiplica) (* (Operar-binarias left) (Operar-binarias right))]
-         [else ("Operador inválido")]))]
-    [else ("Expresión inválida")])) ; Manejo de error para expresiones no válidas
+         [else '(error "Operador inválido")]))]
+    [else '(error "Expresión inválida")])) ; Manejo de error para expresiones no válidas
 
 ;; Pruebas
+(display "Pruebas punto 16, función: Operar-binarias")
+(newline)
 (display (Operar-binarias 4)) ; 4
 (newline)
 (display (Operar-binarias '(2 suma 9))) ; 2 + 9 = 11
@@ -166,4 +258,24 @@
 (newline)
 (display (Operar-binarias '((2 multiplica (4 suma 1)) multiplica ((2 multiplica 4) resta 1)))) ; 2 x (4+1) x (2 x 4 -1) = 70
 (newline)
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 17)
+;; prod-scalar-matriz: List[List] List -> List[List]
+;; usage: (prod-scalar-matriz mat vec) = a new matrix where each row is the result
+;;                                      of multiplying the corresponding row of mat by the vector vec.
+
+(define (prod-scalar-matriz mat vec)
+  (define (multiply-row row vec)
+    (if (null? row)
+        '()
+        (cons (* (car row) (car vec))
+              (multiply-row (cdr row) (cdr vec)))))
+  
+  (if (null? mat)
+      '()
+      (cons (multiply-row (car mat) vec)
+            (prod-scalar-matriz (cdr mat) vec))))
 

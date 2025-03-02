@@ -47,6 +47,37 @@
       '()
       (cons (list (car L)) (down (cdr L)))))
 
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 3). list-set :
+;; Propósito:
+;; N x S x L -> L’ : Procedimiento que reemplaza el elemento 
+;; en la posición N de una lista L por un símbolo S.
+;;
+;; <lista> := ()  
+;;         := (<valor-de-scheme> <lista>)
+(define list-set
+  (lambda (lst n x)
+    (cond
+      [(null? lst) '()]  
+      [(zero? n) (cons x (cdr lst))] 
+      [else (cons (car lst) (list-set (cdr lst) (- n 1) x))])))
+
+;; Pruebas
+(display "Pruebas punto 3, función: list-set")
+(newline)
+(display (list-set '(a b c d) 2 'x))  ;; Devuelve '(a b x d)
+(newline)
+(display (list-set '(p q r) 0 'z))    ;; Devuelve '(z q r)
+(newline)
+(display (list-set '(w x y z) 3 'k))  ;; Devuelve '(w x y k)
+(newline)
+(display "---------------------------------------------\n")
+(newline)
+
+
+
 ;; Punto 4)
 ;; filter-in :
 ;; Propósito:
@@ -92,6 +123,39 @@
      (let ((rest (list-index P (cdr L))))
        (if (number? rest) (+ 1 rest) #f)))))
 
+(display "---------------------------------------------\n")
+(newline)
+
+;; Punto 6). swapper:
+;; Propósito:
+;; S x S x L -> L’ : Procedimiento que intercambia todas las 
+;; ocurrencias de un símbolo S1 por S2 y viceversa en una 
+;; lista de símbolos L.
+;;
+;; <lista> := ()
+;;        := (<valor-de-scheme> <lista>)
+(define swapper
+  (lambda (e1 e2 lst)
+    (cond
+      [(null? lst) '()] 
+      [(equal? e1 (car lst)) (cons e2 (swapper e1 e2 (cdr lst)))]
+      [(equal? e2 (car lst)) (cons e1 (swapper e1 e2 (cdr lst)))] 
+      [else (cons (car lst) (swapper e1 e2 (cdr lst)))])))
+
+;; Pruebas
+(display "Pruebas punto 6, función: swapper")
+(newline)
+(display (swapper 'a 'b '(a b c a d b)))  ;; Debería devolver '(b a c b d a)
+(newline)
+(display (swapper 'x 'y '(x y x y z)))    ;; Debería devolver '(y x y x z)
+(newline)
+(display (swapper '1 '2 '(1 2 3 1 2 1)))  ;; Debería devolver '(2 1 3 2 1 2)
+(newline)
+(display "---------------------------------------------\n")
+(newline)
+
+
+
 ;; Punto 7)
 ;; cartesian-product :
 ;; Propósito:
@@ -130,6 +194,44 @@
        (cons (list (car L1) (car L2)) (filtrar (cdr L1) (cdr L2))))
       (else (filtrar (cdr L1) (cdr L2))))) 
   (filtrar L1 L2))
+
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 9). inversions :
+;; Propósito:
+;; L -> N : Procedimiento que cuenta el número de inversiones en una lista de números L.
+;; Una inversión ocurre cuando un elemento aparece antes que otro menor que él.
+;;
+;; <lista> := ()  
+;;         := (<número> <lista>)
+(define inversions
+  (lambda (L)
+    (define coincidencias
+      (lambda (item lst)
+        (if (null? lst)
+            0
+            (+ (if (and (pair? lst) (> item (car lst))) 1 0)
+               (coincidencias item (cdr lst))))))
+    (if (null? L)
+        0
+        (+ (coincidencias (car L) (cdr L)) (inversions (cdr L))))))
+
+;; Pruebas
+(display "Pruebas punto 9, función: inversions") ;; Reemplaza "X" con el número correcto del punto
+(newline)
+(display (inversions '(5 3 2 1)))  ;; Devuelve 6 → (5-3, 5-2, 5-1, 3-2, 3-1, 2-1)
+(newline)
+(display (inversions '(1 2 3 4)))  ;; Devuelve 0 → (ya está ordenada)
+(newline)
+(display (inversions '(4 3 2 1)))  ;; Devuelve 6 → (todas las inversiones posibles)
+(newline)
+(display (inversions '(2 1 3)))    ;; Devuelve 1 → (solo 2-1)
+(newline)
+(display "---------------------------------------------\n")
+(newline)
+
 
 ;; Punto 10)
 ;; up :
@@ -170,6 +272,37 @@
       '()
       (cons (F (car L1) (car L2))
             (zip F (cdr L1) (cdr L2)))))
+
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 12). filter-acum :
+;; Propósito:
+;; N x N x (N x N -> N) x N x (N -> Bool) -> N : Procedimiento que aplica una función 
+;; de acumulación F sobre los valores de un rango [a, b] que cumplen con un filtro dado.
+;;
+;; <rango> := N N 
+;; <función-acumulación> := (N x N -> N)
+;; <filtro> := (N -> Bool)
+(define filter-acum
+  (lambda (a b F acum filter)
+    (if (> a b)
+        acum  ;; Caso base: cuando a es mayor que b, devuelve el acumulador.
+        (filter-acum (+ a 1) b F 
+                     (F (if (filter a) a 0) acum)  ;; Aplica F solo si filter es verdadero.
+                     filter))))
+
+;; Pruebas
+(display "Pruebas punto 12, función: filter-acum")
+(newline)
+(display (filter-acum 1 5 + 0 even?))  ;; Devuelve 6 → Suma de los números pares: 2 + 4
+(newline)
+(display (filter-acum 1 5 * 1 odd?))   ;; Devuelve 15 → Producto de los impares: 1 * 3 * 5
+(newline)
+(display "---------------------------------------------\n")
+(newline)
+
 
 ;; Punto 13)
 ;; operate:
@@ -218,6 +351,44 @@
        (cons 'right (helper (caddr current-bst)))]))
   
   (helper bst))
+
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 15). count-odd-and-even :
+;; Propósito:
+;; A -> (N N) : Procedimiento que cuenta la cantidad de números pares e impares  
+;; en un árbol binario A.
+;;
+;; <árbol> := ()  
+;;         := (<número> <árbol> <árbol>)  
+(define (count-odd-and-even L)
+  (cond
+    [(null? L) '(0 0)]  
+    [(number? (car L))  
+     (list (+ (if (even? (car L)) 1 0) (car (count-odd-and-even (cdr L))))
+           (+ (if (odd? (car L)) 1 0)  (cadr (count-odd-and-even (cdr L)))))]
+
+    [else  
+     (list (+ (car (count-odd-and-even (car L))) (car (count-odd-and-even (cdr L))))
+           (+ (cadr (count-odd-and-even (car L))) (cadr (count-odd-and-even (cdr L)))))]))
+
+;; Pruebas
+(display "Pruebas punto 15, función: count-odd-and-even")
+(newline)
+(display (count-odd-and-even '(5 (3 (2 () ()) (1 () ())) (8 (6 () ()) (9 () ())))))  
+;; Devuelve '(3 3) → 3 pares (2, 6, 8) y 3 impares (1, 3, 5, 9)
+(newline)
+(display (count-odd-and-even '(4 (2 () ()) (6 () ()))))  
+;; Devuelve '(3 0) → 3 pares (4, 2, 6) y 0 impares
+(newline)
+(display (count-odd-and-even '(7 (3 (1 () ()) (5 () ())) (9 (11 () ()) (13 () ())))))  
+;; Devuelve '(0 6) → 0 pares y 6 impares (1, 3, 5, 7, 9, 11, 13)
+(newline)
+(display "---------------------------------------------\n")
+(newline)
+
 
 ;; Punto 16)
 ;; Operar-binarias:
@@ -279,3 +450,37 @@
       (cons (multiply-row (car mat) vec)
             (prod-scalar-matriz (cdr mat) vec))))
 
+(display "---------------------------------------------\n")
+(newline)
+
+
+;; Punto 18). pascal :
+;; Propósito:
+;; N -> L : Procedimiento que genera la fila N del triángulo de Pascal.
+;;
+;; <fila> := ()  
+;;        := (<número> <fila>)  
+(define (pascal N)
+  (define (sumar-adyacentes lst last)
+    (if (null? (cdr lst))
+        (list last)  ;; Agrega el último 1 al final de la fila.
+        (cons (+ (car lst) (cadr lst)) (sumar-adyacentes (cdr lst) last))))  
+  (if (= N 1)
+      '(1)  ;; Caso base: la primera fila es '(1)
+      (cons 1 (sumar-adyacentes (pascal (- N 1)) 1))))
+
+;; Pruebas
+(display "Pruebas punto 18, función: pascal")
+(newline)
+(display (pascal 1))  ;; Devuelve '(1)
+(newline)
+(display (pascal 2))  ;; Devuelve '(1 1)
+(newline)
+(display (pascal 3))  ;; Devuelve '(1 2 1)
+(newline)
+(display (pascal 4))  ;; Devuelve '(1 3 3 1)
+(newline)
+(display (pascal 5))  ;; Devuelve '(1 4 6 4 1)
+(newline)
+(display "---------------------------------------------\n")
+(newline)

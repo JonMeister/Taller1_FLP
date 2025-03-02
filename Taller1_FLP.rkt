@@ -152,8 +152,6 @@
 (newline)
 (display (list-index even? '(1 3 4 5))) ;; 2
 (newline)
-(display (list-index even? '(a b 3 (2 4) 6))) ;; 4
-(newline)
 (display (list-index string? '(1 2 "hola" 4 "mundo"))) ;; 2
 (newline)
 (display "---------------------------------------------\n")

@@ -1,8 +1,8 @@
 ;; Taller 1: Definición recursiva de programas e inducción
 ;; Integrantes grupo #15:
 ;; Jonathan Aristizabal - 2322626
-;; Andrey Quiceno -
-;; Johan Ceballos
+;; Andrey Quiceno - 2326081
+;; Johan Ceballos - 2372229
 ;; Fecha: 01-03-2025
 
 #lang eopl
